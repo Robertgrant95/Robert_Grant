@@ -1,0 +1,496 @@
+---
+# IMPORTANT: Change settings here, but DO NOT change the spacing. 
+# Remove comments and add values where applicable. 
+# The descriptions below should be self-explanatory
+
+title: "Analying Exchange Rate Dynamics in Emerging Market and Advanced Economies with a Markov-switching GARCH model"
+#subtitle: "This will appear as Right Header"
+
+documentclass: "elsarticle"
+
+# Comment: ----- Follow this pattern for up to 5 authors
+Author1: "Nico Katzke"  # First Author
+Ref1: "Prescient Securities, Cape Town, South Africa" # First Author's Affiliation
+Email1: "nfkatzke\\@gmail.com" # First Author's Email address
+Author2: "Robert Grant"
+Ref2: "Stellenbosch University, Stellenbosch, South Africa"
+Email2: "robbiegrant1995\\@gmail.com"
+
+CommonAffiliation_12: TRUE # If Author 1 and 2 have a common affiliation. Works with _13, _23, etc.
+
+Author3: ""
+Email3: ""
+
+CorrespAuthor_1: TRUE  # If corresponding author is author 3, e.g., use CorrespAuthor_3: TRUE
+
+keywords: "" # Use \\sep to separate
+JELCodes: ""
+
+# Comment: ----- Manage headers and footers:
+#BottomLFooter: $Title$
+#BottomCFooter:
+#TopLHeader: \leftmark # Adds section name at topleft. Remove comment to add it.
+BottomRFooter: "\\footnotesize Page \\thepage\\" # Add a '#' before this line to remove footer.
+addtoprule: TRUE
+addfootrule: TRUE               # Use if footers added. Add '#' to remove line.
+
+# Setting page margins:
+margin: 2.3 # Sides
+bottom: 2 # bottom
+top: 2.5 # Top
+
+linenumbers: FALSE # Used when submitting to journal
+AddTitle: TRUE # Used when submitting to peer reviewed platform. This will remove author names. 
+
+HardSet_layout: TRUE # Hard-set the spacing of words in your document. This will stop LaTeX squashing text to fit on pages, e.g. This is done by hard-setting the spacing dimensions. Set to FALSE if you want LaTeX to optimize this for your paper. 
+bibliography: Tex/ref.bib       # Do not edit: Keep this naming convention and location.
+RemovePreprintSubmittedTo: TRUE  # Removes the 'preprint submitted to...' at bottom of titlepage
+Journal: "Journal of Finance"   # Journal that the paper will be submitting to, if RemovePreprintSubmittedTo is set to TRUE.
+toc: FALSE                       # Add a table of contents
+numbersections: TRUE             # Should sections (and thus figures and tables) be numbered?
+fontsize: 11pt                  # Set fontsize
+linestretch: 1.2                # Set distance between lines.
+link-citations: TRUE            # This creates dynamic links to the papers in reference list.
+
+### Adding additional latex packages:
+# header-includes:
+#    - \usepackage{colortbl} # Add additional packages here.
+
+output:
+  pdf_document:
+    keep_tex: TRUE
+    template: Tex/TexDefault.txt
+    fig_width: 3.5 # Adjust default figure sizes. This can also be done in the chunks of the text.
+    fig_height: 3.5
+abstract: |
+ This paper employs a Markov-switching GARCH (MS-GARCH) model in order to understand exchange rate co-movements between emerging market (EM) economies and advanced economies (AE) during both high and low volatility regimes. Filtered probabilities of being in a low volatility regime indicate that AEs in the sample move closer together during periods of both high and low volatility, when compared to EMs. Further, for two  of the three EM currencies used in the paper, the expected duration of being in a high volatility regime is longer than that for the AE currencies. This suggests that EMs struggle more than AEs to stabilise currency volatility following a shock to the exchange rate. Lastly, conditional variance plots show a much looser grouping for the EMs, when compared to the AEs.
+---
+
+<!-- First: Set your default preferences for chunk options: -->
+
+<!-- If you want a chunk's code to be printed, set echo = TRUE. message = FALSE stops R printing ugly package loading details in your final paper too. I also suggest setting warning = FALSE and checking for warnings in R, else you might find ugly warnings in your paper. -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 5, fig.pos="H", fig.pos = 'H')
+# Note: Include = FALSE implies the code is executed, but not printed in your pdf.
+# warning and message = FALSE implies ugly messages and warnings are removed from your pdf. These should be picked up when you execute the command chunks (code sections below) in your rmd, not printed in your paper!
+
+```
+
+
+<!-- ############################## -->
+<!-- # Start Writing here: -->
+<!-- ############################## -->
+
+# Introduction \label{Introduction}
+
+The comovement of financial variables between countries is a well researched topic. Particularly, the advent of the Global Financial Crisis (GFC) challenged what we know about the dynamics between international variables, with many established correlations breaking down after the GFC. Similarly, exchange rate comovements between emerging markets change during periods of economic uncertainty, such as oil price shocks, economic crashes, bank and currency crises and even across general business cycle up- and downswings, display different dynamics. The comovement of exchange rates between countries is of particular interest to investors for hedging and arbitrage decision-making, as well as for portfolio allocation. This paper employs a Markov-switching GARCH (MS-GARCH) model on a selection of emerging market (EM) and advanced economy (AE) exchange rates in order to analyse the correlation between these currencies during periods (regimes) of high and low volatility. In order to achieve this, filtered probabilities, conditional volatility plots and the within-group correlation of these conditional volatility plots are analysed. 
+
+MS-GARCH models, since @hamilton1989new introduced the concept, have become a popular method for analysing the dynamics of financial variables through time, providing better forecasts, both in-sample and out-of-sample, than those produced by more traditional random-walk models and other linear models. Further, MS-GARCH models are favoured as they produce intuitive  and plausible interpretations of model non-linearities [@haas2004new]. The paper is set out as followss: section 2 reviews the prominent literature on the use of Markov-switching GARCH models on exchange rates. Section 3 describes the exchange rate data used in the paper. Section 4 describes a simple outline of the MS-GARCH process. Section 5 discusses the results obtained in this paper, and section 6 concludes the paper.
+
+# Literature Review
+MS-GARCH models are a frequently used framework for assessing dynamics between financial variables, including stock market returns and exchange rates. @engel1990long propose a Markov-switching which allows for currency dynamics to vary between different states, and find that the model performs adequately for both in-sample and out-of-sample forecasts. @engel1994can first proposed a GARCH model in a Markov-switching context, by asking whether exchange rates are forecastable. In terms of forecasting, the MSGARCH model performed relatively poorly when compared to that of the random-walk model. However, @engel1994can notes the natural ability of the MS framework to capture changes in regime found so commonly in financial or macroeconomic data, as opposed to other models for which shifts in regime prove troublesome. @brunetti2008markov examines currency turmoil in Southeast Asia, and highlights several results of importance. Firstly, the authors argue that the MS framework wouldn't apply to countries' with a pegged exchange rate (as in the Middle East), as there will be no volatility of the exchange rate. Further, as is common across all applications of an MS model, the authors distinction of the high volatility state may not necessarily coincide with the currency crisis. @cheung2005exchange employ a Monte Carlo method of testing for the number of regimes in a Markov-switching model, and find significant evidence that excange rate data for the British pound, the French franc and the Deutsche mark exhibits Markov-switching. Similarly, @frommel2005markov find that a regime shifting environment characterises the exchange rates in their study well, as well as their results showing robustnes to changes in sample and model specification. Markov-switching models are used widely in the field of finance and macroeconomics. @chkili2014exchange uses a Markov-switching framework in order to analyse linkages between stock indices and exchange rates for Brazil, Russia, India, China and South Africa (BRICS). The authors find that the exchange rates are well described by two distinct regimes. 
+
+
+
+# Data \label{Data}
+
+The data used in this paper are weekly exchange rates of six EM exchange rates, three AEs and three from EMs, spanning the period from the first week of 2009 up until the last week of 2017, yielding a total of 470 observation points for each country. All exchange rates are pulled from Bloomberg. The EMs under observation include South Africa, Brazil and Russia, whereas the AEs consist of Australia, Canada and Norway. All exchange rates are expressed in local currency, relative to the US dollar (USD). The exchange rate series are log-differenced, according to
+
+\begin{align}
+y_t &= log(y_t) - log(y_{t-1})
+\end{align}
+
+Where $y_t$ refers to the exchange rate at time t.
+
+Table 3.1 below reports mean and volatility each series in the study. Immediately it is clear that the mean returns for the EM countries are higher than each other the AE countries. However, both India and South Africa have higher exchange rate volatility than any of the AE countries. In fact, the South African rand reports the highest volatility in the sample, an occurrence which is robust throughout any sample period in recent years. 
+
+
+```{r}
+#===========
+#DATA IMPORT
+#===========
+library(tidyverse)
+currency <-list.files("E:/Exchangerates", full.names = T, recursive = T) %>% as.list %>% map_df(~read_rds(.))
+```
+
+```{r}
+#=======================================
+#CONVERSION TO WEEKLY, SUBSETTING SAMPLE, RENAME
+#=======================================
+Cncy <- currency %>% arrange(date) %>% mutate(dow=format(date,"%a")) %>% filter(dow %in% "Fri") %>% group_by(Name) %>% mutate(Return=log(BDH_Value)-log(lag(BDH_Value))) %>% filter(!is.na(Return), date > "2009-01-01") %>% filter(date < "2018-01-01")
+weekly <- Cncy %>% arrange(Name) %>%  select(date, Name, Return)
+
+#RENAME
+wideformat <- weekly %>% spread(Name, Return) %>% as_tibble() %>% rename(Australia = Australia_Cncy_Inv, Brazil = Brazil_Cncy, Canada = Canada_Cncy, India = India_Cncy, Norway = Norway_Cncy, SA = SouthAfrica_Cncy)
+weekly <- wideformat %>% gather(Name, Return, -date)
+
+
+##EM GROUP
+emex <- weekly %>% filter(Name %in% c("Brazil","SA","India"))
+##AE GROUP
+aeex <- weekly %>% filter(Name %in% c("Australia","Canada","Norway"))
+
+```
+```{r ShortTable, results = 'asis'}
+library(knitr)
+data <- weekly %>% tbl_df() %>%  group_by(Name) %>% summarise("Mean (%)" = mean(Return)*100, "Volatility (%)"  = sqrt(var(Return))) 
+table <- kable(data, caption = "Exchang rate mean and volatility", digits = 5)
+print(table)
+```
+
+Log-differenced exchange rate series are shown for each country in figure 3.1 below. Volatility clustering at certain periods, for each country, is indicative of heteroscedasticity present in the process. This necessitates the use of a GARCH model.
+
+```{r}
+#========
+#PACKAGES
+#========
+if (!require("devtools")) install.packages("devtools")
+if (!require("rmsfuns")) devtools::install_github("Nicktz/rmsfuns")
+if(!require("pacman")) install.packages("pacman")
+load_pkg("MSGARCH")
+library(rmsfuns)
+load_pkg("tidyverse")
+load_pkg("ggplot2")
+load_pkg("MTS")
+```
+
+```{r Figure1, warning =  FALSE, fig.align = 'center', fig.cap = "Log differenced exchange rates \\label{Figure1}", fig.ext = 'png', fig.height = 4, fig.width = 6}
+Ret <- ggplot(data = weekly) + # Opens plot environment. Now let's add layers:
+geom_line(aes(x = date, y = Return, colour=Name), size = 0.3) + theme_bw() +
+labs(title = "",
+caption = "Data was downloaded from Bloomberg", x = "", y = "Log difference Values") +
+facet_wrap(~Name, scales = "free") + guides(color = FALSE)
+print(Ret)
+```
+
+
+#  Methodology \label{Methodology}
+## The Markov-switching framework
+This section presents a layout of a simple MS-GARCH framework, as described in @hamilton1989new. This Markov-switching framework assumes two distinct states under which exchange rates evolve: a high-volatility and low-volatility. The high volatility state is denoted by $S_t = i$, where $i = 0,1$ depending on the state. Let the series of log-differenced exchange rates be given by $y_t$. This paper assumes two distinct states of the exchange rate series, one in which volatility is high ($S_t = 1$), and one in which volatility is low ($S_t = 0$). @hamilton1989new models $S_t$ as a first-order Markov-process. A first-order Markov-process possesses the 'memorylessness property', in that the probability of falling into state $i$ in period $t$ depends only on the state prevailed in the previous period $t_{-1}$, and none of the preceding states $t-2,t-3$,..., and so on. Formally, this is given by
+
+\begin{align}
+P(S_t = j|S_{t-1}=i,S_{t-2}=k,...) = P(S_t = j|S_{t-1}=i) = p_{i,j} 
+\end{align}
+
+Where $p_{i,j}$ is the transition probability, which provides the probability of regime $j$ occurring in the current period, given that state $i$ occurred in the period preceding the current period.
+
+These transition probabilities can be collected into transition probability matrix $P$
+
+$$P = \begin{bmatrix}p_{i.i} & p_{j,i}\\
+p_{i,j} & p_{j,j}
+\end{bmatrix}$$
+
+Estimates for both the coefficients and the transition probability matrix are estimated. This allows for the calculation of the filtered probabilities. The filtered probabilities are derived from an algorithm^[See [@kim1999state] for a detailed description of the algorithm] which calculates the probability $P(S_{t=i}|y_{1}...y_{t})$, which is simply the probability of the series $y_{t}$ being in state $j$ in period $t$, given information provided by the whole series up until point $t-1$.
+
+## The GARCH model
+GARCH models incorporate
+A simple version of a GARCH(1,1) model is given by
+
+\begin{align}
+y_t &= \mu +\sum_{i=1}^{k}\theta{X_{i,t}} + u_{t}\\ \notag
+\mu_{t} &= \sigma_{t}\epsilon_{t}, \quad \epsilon_{t} \sim iid(0,1)\\ \notag
+\sigma^{2}_{t}|\Omega_{t-1} &= \omega + \alpha_{1}u^{2}_{t-1} + \beta_{1}\sigma^2_{t-1}
+\end{align}
+
+where $y_t$ acts as the log-difference exchange rate for each country, and is simply a white noise term multiplied by athe volatility of the process. $X_{i}$ is a matrix of lagged variables for return means, $\theta$ is a vector of parameters, and the information set at period $t-1$ is given by $\Omega_{t-1}$.
+
+This paper employs the @glosten1993relation (GJR) form as the model specification. The GARCH model in this instance is given by^[This section is mostly adapted from @ardia2016markov ]
+
+\begin{align}
+h_{k,t} &= h(y_{t-1},h_{k,t-1},\theta_{k})
+\end{align}
+
+\newpage 
+With the specific GJR specification:
+
+\begin{align}
+y_{k,t} = \alpha_{0,k} + (\alpha_{1,k} + \alpha_{2,k}f({y_{t-1 < 0}})y^{2}_{t-1} + \beta_{k}h_{k,t-1}
+\end{align}
+
+The model benefit lies in its ability to capture asymmetries in conditional volatility. the $f(.)$ is a binary indicator variable, which equals 1 if the condition is true, or 0 otherwise. The degree of asymmetry in the conditional volatility response to shocks in past periods in state $k$is controlled in parameter $\alpha_{2,k}$. 
+
+### Maximum Likelihood
+
+Model estimation is performed using the Maximum Likelihood method, which requires maximisation of the likelihood function
+
+\begin{align}
+L(\Psi|Z_{t-1}) &= \prod^{T}_{t-1}f(y_{t}|\Psi,Z_{t-1})
+\end{align}
+
+the density of $y_{t}$ given past values $y_{t-1,...,t-k}$, $Z_{t-1}$ and the model parameters $\Psi$ is denoted by $f(y_{t}|\Psi,Z_{t-1})$. The conditional density of $y_{t}$ is
+
+\begin{align}
+f(y_{t}|\Psi,Z_{t-1}) &= \sum^{K}_{i=1}\sum^{K}_{j=1}p_{i,j}z_{i,t-1}f_{D}(y_{t}|s_{t}=j,\Psi,Z_{t-1})
+\end{align}
+
+with the filtered probabilities of state $i$ at time $t-1$ mentioned above given by $z_{i,t-1} = P[s_{t-1}|\Psi,Z_{t-1}]$.
+
+
+# Results
+## Filtered probabilities
+
+This section provides the filtered probabilities for the EM and AE group. Figures 5.1 and 5.2 plot the filtered probabilities of the exchange rate being in a low volatility regime. Firstly,it is worth noting that a two regime MS model characterises the exchange rate processes for South Africa and India well, but less so for Brazil, and characterises the AEs well. South Africa, for example, spent most of the decade in a high volatility regime, owing mainly to political and civil unrest, as well as poor economic growth and credit downgrades. Figure 5.1 indicates the more volatile nature of EM exchange rates in general. Secondly, for both the AE and EM group, probabilities low exchange rate volatility appear to cluster at similar points in time for the countries within the group. The clustering of volatility at approximately the same period across all countries is to be expected, since global shocks to the economy are felt throughout the world. However, figures 5.1 and 5.2 indicate that volatility can arise due to country-specific reasons. This, in part, accounts for the deviation in the volatility plots discussed in section 5.3. An example of these country-specific factors can be seen in the filtered probabilities for South Africa, which deviate in several areas from those for India and Brazil. South Africa have dealt with significant political turmoil, suppressed growth and issues with service delivery at regular periods throughout the 2010s, which can be seen by a large number of switches in regime for this period. Moreover, countries like South Africa are relatively small agents in the global economy, and as such country-specific contributors to its currency are unlikely to spill over into the AE group, although it may be the case in the opposite direction.
+
+
+
+
+```{r Figure2, warning =  FALSE, fig.align = 'center', fig.cap = "Filtered probabilities of high volatility regime - emerging market economies \\label{Figure2}", fig.ext = 'png', fig.height = 4, fig.width = 7}
+#======================
+#MARKOV SWITCHING GARCH 
+#======================
+#CREATING MODEL SPECS
+#----------------------
+#EM group
+#-----
+
+#Creating model specs
+ZAR <- weekly %>% filter(Name %in% "SA")
+specZAR <- CreateSpec(variance.spec = list(model = c("gjrGARCH")),
+                         distribution.spec = list(distribution = c("std")),
+                         switch.spec = list(K = 2),
+                         constraint.spec = list(regime.const = "nu"))
+fit_spec_ZAR <- FitML(spec = specZAR,data=ZAR$Return)
+
+BRZ <- weekly %>% filter(Name %in% "Brazil")
+specBRZ <- CreateSpec(variance.spec = list(model = c("gjrGARCH")),
+                         distribution.spec = list(distribution = c("std")),
+                         switch.spec = list(K = 2),
+                         constraint.spec = list(regime.const = "nu"))
+fit_spec_BRZ <- FitML(spec = specBRZ,data=BRZ$Return)
+
+IND <- weekly %>%  filter(Name %in% "India")
+spec_1 <- CreateSpec(variance.spec = list(model = c("gjrGARCH")),
+                         distribution.spec = list(distribution = c("std")),
+                         switch.spec = list(K = 2),
+                         constraint.spec = list(regime.const = "nu"))
+fit_spec_IND <- FitML(spec = spec_1,data=IND$Return)
+
+
+#Filtered probabilities
+#----------------------
+#SA
+ZARfilter <- as.data.frame(matrix(data = NA, nrow = nrow(ZAR), ncol = specZAR$K))
+  ZARfilter$Date <- ZAR$date 
+  
+  for (i in 1:specZAR$K) {
+    ZARfilter[,i] <- State(fit_spec_ZAR)$FiltProb[, 1, i, drop = TRUE]
+    colnames(ZARfilter)[i] <- paste("Regime", i,sep = "")
+  }
+
+  filter_probs_long_ZAR <- gather(ZARfilter,Regime,Probability,Regime1,factor_key = T) 
+  ZARplot <- ggplot(data = filter_probs_long_ZAR)+geom_line(aes(x=Date,y=Probability))+facet_grid(.~Regime)+theme_bw()
+  
+#Brazil
+BRZfilter <- as.data.frame(matrix(data = NA, nrow = nrow(BRZ), ncol = specBRZ$K)) 
+BRZfilter$Date <- BRZ$date # Add the date column to make nicer plots 
+  
+  for (i in 1:specBRZ$K) {
+    BRZfilter[,i] <- State(fit_spec_BRZ)$FiltProb[, 1, i, drop = TRUE]
+    colnames(BRZfilter)[i] <- paste("Regime", i,sep = "")
+    }
+  
+  filter_probs_long_BRZ <- gather(BRZfilter,Regime,Probability,Regime1,factor_key = T) 
+  BRZplot <- ggplot(data = filter_probs_long_BRZ)+geom_line(aes(x=Date,y=Probability))+facet_grid(.~Regime)+theme_bw()
+  
+#IND
+ INDfilter <- as.data.frame(matrix(data = NA, nrow = nrow(IND), ncol = spec_1$K)) #
+  INDfilter$Date <- IND$date # Add the date column to make nicer plots 
+  
+  for (i in 1:spec_1$K) {
+    INDfilter[,i] <- State(fit_spec_IND)$FiltProb[, 1, i, drop = TRUE]
+    colnames(INDfilter)[i] <- paste("Regime", i,sep = "")
+    }
+  
+  filter_probs_long_IND <- gather(INDfilter,Regime,Probability,Regime1,factor_key = T) # Convert to long datatype for neat ggplots
+  INDplot <- ggplot(data = filter_probs_long_IND)+geom_line(aes(x=Date,y=Probability))+facet_grid(.~Regime)+theme_bw()
+  
+#AE group
+#--------
+#Create model spec
+AUS <- weekly %>% filter(Name %in% "Australia")
+specAUS <- CreateSpec(variance.spec = list(model = c("gjrGARCH")),
+                         distribution.spec = list(distribution = c("std")),
+                         switch.spec = list(K = 2),
+                         constraint.spec = list(regime.const = "nu"))
+fit_spec_AUS <- FitML(spec = specAUS,data=AUS$Return)
+
+CAN <- weekly %>% filter(Name %in% "Canada")
+specCAN <- CreateSpec(variance.spec = list(model = c("gjrGARCH")),
+                         distribution.spec = list(distribution = c("std")),
+                         switch.spec = list(K = 2),
+                         constraint.spec = list(regime.const = "nu"))
+fit_spec_CAN <- FitML(spec = specCAN,data=CAN$Return)
+
+NOR <- weekly %>%  filter(Name %in% "Norway")
+specNOR <- CreateSpec(variance.spec = list(model = c("gjrGARCH")),
+                         distribution.spec = list(distribution = c("std")),
+                         switch.spec = list(K = 2),
+                         constraint.spec = list(regime.const = "nu"))
+fit_spec_NOR <- FitML(spec = specNOR,data=NOR$Return)
+
+
+#filtered probabilities
+#----------------------
+AUSfilter <- as.data.frame(matrix(data = NA, nrow = nrow(AUS), ncol = specAUS$K))
+  AUSfilter$Date <- AUS$date 
+  
+  for (i in 1:specAUS$K) {
+    AUSfilter[,i] <- State(fit_spec_AUS)$FiltProb[, 1, i, drop = TRUE]
+    colnames(AUSfilter)[i] <- paste("Regime", i,sep = "")
+  }
+
+  filter_probs_long_AUS <- gather(AUSfilter,Regime,Probability,Regime1,factor_key = T) 
+  AUSplot <- ggplot(data = filter_probs_long_AUS)+geom_line(aes(x=Date,y=Probability))+facet_grid(.~Regime)+theme_bw()
+  
+#Canada
+CANfilter <- as.data.frame(matrix(data = NA, nrow = nrow(CAN), ncol = specCAN$K)) 
+CANfilter$Date <- CAN$date # Add the date column to make nicer plots 
+  
+  for (i in 1:specCAN$K) {
+    CANfilter[,i] <- State(fit_spec_CAN)$FiltProb[, 1, i, drop = TRUE]
+    colnames(CANfilter)[i] <- paste("Regime", i,sep = "")
+    }
+  
+  filter_probs_long_CAN <- gather(CANfilter,Regime,Probability,Regime1,factor_key = T) 
+  CANplot <- ggplot(data = filter_probs_long_CAN)+geom_line(aes(x=Date,y=Probability))+facet_grid(.~Regime)+theme_bw()
+  
+#IND
+ NORfilter <- as.data.frame(matrix(data = NA, nrow = nrow(NOR), ncol = specNOR$K)) #
+  NORfilter$Date <- NOR$date # Add the date column to make nicer plots 
+  
+  for (i in 1:specNOR$K) {
+    NORfilter[,i] <- State(fit_spec_IND)$FiltProb[, 1, i, drop = TRUE]
+    colnames(NORfilter)[i] <- paste("Regime", i,sep = "")
+    }
+  
+  filter_probs_long_NOR <- gather(NORfilter,Regime,Probability,Regime1,factor_key = T) 
+  NORplot <- ggplot(data = filter_probs_long_NOR)+geom_line(aes(x=Date,y=Probability))+facet_grid(.~Regime)+theme_bw()
+```
+```{r Figure 3, warning =  FALSE, fig.align = 'center', fig.cap = "Filtered Probabilities - Emerging economies \\label{Figure1}", fig.ext = 'png', fig.height = 4, fig.width = 7}
+#plotting EM group
+#------------------------------------
+#EM group
+#--------
+probEM <- ZARfilter %>% select(Date, Regime1) %>% rename(SA = Regime1) %>% cbind((BRZfilter %>% select(Regime1) %>% rename(Brazil = Regime1)),(INDfilter %>% select(Regime1) %>% rename(India = Regime1)))
+probEMlong <- probEM %>% gather(Name, Probability, -Date)
+EMplot <- ggplot(data = probEMlong)+geom_line(aes(x=Date, y=Probability, colour = Name))
+print(EMplot)
+
+```
+
+```{r  Figure 4, warning =  FALSE, fig.align = 'center', fig.cap = "Filtered Probabilities - Advanced economies \\label{Figure3}", fig.ext = 'png', fig.height = 4, fig.width = 7}
+#plotting AE group
+#-----------------
+probAE <- AUSfilter %>% select(Date, Regime1) %>% rename(Australia = Regime1) %>% cbind((CANfilter %>% select(Regime1) %>% rename(Canada = Regime1)),(NORfilter %>% select(Regime1) %>% rename(Norway = Regime1)))
+probAElong <- probAE %>% gather(Name, Probability, -Date)
+AEplot <- ggplot(data = probAElong)+geom_line(aes(x=Date, y=Probability, colour=Name))
+print(AEplot)
+```
+
+
+## Conditional Volatility 
+
+Figures 5.3 and 5.4 report conditional volatilities for both the EM and AE group. For models with a GARCH component, shocks to the series drive conditional volatility. As mentioned in section 4, the GJR specification used in this paper captures asymmetry in the conditional volatiltiy process. 
+
+The conditional volatilies of the EM group differ in two main ways from those for the AE group. Firstly, the comovement in the EM group is much looser than it is in the AE group, in the sense that the levels of the conditional volatlities are further apart for the EM group than for the AE group. Secondly, the comovement varies significantly through the sample for the EM group, as opposed to the AE group, where the correlation between the respective countries' condition remains more or less the same throughout the sample. However, a caveat exists at this point. Indian exchange rate conditional volatility deviated significantly from about 2015 onwards, as the currency entered a high volatility regime, and this deviation has skewed the results palpably. The correlation between the volatility of the South African and Brazilian exchange rate is in line with those found in the AE group, and even India showed strong comovement with South Africa and Brazil prior to its lasting regime switch in 2015.
+
+
+ 
+
+```{r Figure 5, warning =  FALSE, fig.align = 'center', fig.cap = "Conditional Volatilities - Emerging economies \\label{Figure5}", fig.ext = 'png', fig.height = 3, fig.width = 7}
+#========================
+#CONDITIONAL VOLATILITIES
+#========================
+#EM group
+#--------
+ZARcondvol <- as.data.frame(Volatility(fit_spec_ZAR)) 
+colnames(ZARcondvol) <- "South Africa"
+BRZcondvol <- as.data.frame(Volatility(fit_spec_BRZ))
+colnames(BRZcondvol) <- "Brazil"
+INDcondvol <- as.data.frame(Volatility(fit_spec_IND))
+colnames(INDcondvol) <- "India"
+EMcondvol <- cbind(ZARfilter$Date,ZARcondvol,BRZcondvol,INDcondvol) %>% tbl_df()
+EMcondvol <- EMcondvol %>% rename(Date = `ZARfilter$Date`) %>% gather(Name, `Conditional Volatility`, -Date)
+EMcondvolplot <- ggplot(data = EMcondvol)+geom_line(aes(x=Date, y=`Conditional Volatility`, colour=Name))
+print(EMcondvolplot)
+```
+
+
+
+```{r Figure 6, warning =  FALSE, fig.align = 'center', fig.cap = "Conditional Volatilities - Advanced economies \\label{Figure6}", fig.ext = 'png', fig.height = 3, fig.width = 7}
+#AE group
+#--------
+AUScondvol <- as.data.frame(Volatility(fit_spec_AUS)) 
+colnames(AUScondvol) <- "Australia"
+CANcondvol <- as.data.frame(Volatility(fit_spec_CAN))
+colnames(CANcondvol) <- "Canada"
+NORcondvol <- as.data.frame(Volatility(fit_spec_NOR))
+colnames(NORcondvol) <- "Norway"
+AEcondvol <- cbind(ZARfilter$Date,AUScondvol,CANcondvol,NORcondvol) %>% tbl_df()
+AEcondvol <- AEcondvol %>% rename(Date = `ZARfilter$Date`) %>% gather(Name, `Conditional Volatility`, -Date)
+AEcondvolplot <- ggplot(data = AEcondvol)+geom_line(aes(x=Date, y=`Conditional Volatility`, colour=Name))
+print(AEcondvolplot)
+```
+
+
+Figure 5.5 reports the correlations between each country, for the full sample. Notably, EM countries have higher correlations with the other EM countries, as is the case with the AE countries. To reinforce the point made aove, the correlation between the AE countries are all higher than for those between each other EM countries. However, a caveat exists here. The conditional volatility of India's exchange rate diverged significantly from about 2015 onwards, as the currency entered into a high volatility regime.
+
+
+```{r Figure 7, warning =  FALSE, echo=FALSE, fig.align = 'center', fig.cap = "Conditional Volatilities correlation - full sample \\label{Figure7}", fig.ext = 'png', fig.height = 4, fig.width = 7}
+library(corrplot)
+condvols <- rbind(EMcondvol,AEcondvol)
+cormatrix <- condvols %>% spread(Name,`Conditional Volatility`)  %>%  select(-Date) %>% as.matrix()
+condvolcorr <- cor(cormatrix)
+corrtable <- corrplot(condvolcorr,method="number",type="upper", order="hclust", tl.col="black", tl.srt=45)
+
+```
+ 
+
+# Conclusion
+
+This paper employed a simple application of a Markov-switching GARCH model on six different exchange rates, three from emerging market economies, and three from advanced economies. The assumption of the exchange rates evoloving under two distinct regimes characterised the data well, with the exception of Brazil. Filtered probabilities of each countries exchange rate being in a low volatility regime indicate the longer time spent in a low volatility regime for the AE group, as opposed to the EM group. The AE group tends to move closer together, and switch at more similar times than the EM group. Conditional volatility plots suggest that there is a higher degree of correlation between the countries of the AE group than of that between EM countries, perhaps indicating that the EM group exchange rates' are less robust to global economic shocks than AEs are. The findings of this paper shed light on two things. Firstly, there exists potential for MS-GARCH applications on exchange rate data, or at least other non-linear econometric models, such as those in the GARCH family. Second, the higher volatility of EM exchange rates should be taken into account by investors and forex traders, especially with repect to arbitrage and portfolio allocation decisions.
+\newpage
+
+# APPENDIX
+## Output estimation - EM group
+```{r}
+#=================
+#ESTIMATION OUTPUT
+#=================
+#EM group
+#--------
+load_pkg("broom")
+ZARoutput <- fit_spec_ZAR[["Inference"]][["MatCoef"]]
+kable(ZARoutput, caption = "Model estimation - South Africa")
+BRZoutput <- fit_spec_BRZ[["Inference"]][["MatCoef"]]
+kable(BRZoutput, caption = "Model estimation - Brazil")
+```
+
+\newpage
+
+```{r}
+INDoutput <- fit_spec_IND[["Inference"]][["MatCoef"]]
+kable(INDoutput, caption = "Model estimation - India")
+```
+
+## Output estimation -AE group
+```{r}
+AUSoutput <- fit_spec_AUS[["Inference"]][["MatCoef"]]
+kable(AUSoutput, caption = "Model estimation - Australia")
+```
+
+\newpage
+
+```{r}
+CANoutput <- fit_spec_CAN[["Inference"]][["MatCoef"]]
+kable(CANoutput, caption = "Model estimation - Canada")
+NORoutput <- fit_spec_NOR[["Inference"]][["MatCoef"]]
+kable(NORoutput, caption = "Model estimation - Norway")
+```
+
+\newpage
+
+
+
+# References
