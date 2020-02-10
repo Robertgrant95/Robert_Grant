@@ -21,6 +21,7 @@ load_pkg("ggplot2")
 load_pkg("MTS")
 ```
 ## Data import
+The exchange rate data studied in this paper
 ```{r}
 #===========
 #DATA IMPORT
@@ -28,26 +29,28 @@ load_pkg("MTS")
 library(tidyverse)
 currency <-list.files("E:/Exchangerates", full.names = T, recursive = T) %>% as.list %>% map_df(~read_rds(.))
 ```
-
+## Summary statistics
 Creating a table reporting mean and volatility the log-differenced exchange rate series' (Returns)
 ```{r ShortTable, results = 'asis'} 
 library(knitr)
-data <- weekly %>% tbl_df() %>%  group_by(Name) %>% summarise("Mean (%)" = mean(Return)*100, "Volatility (%)"  = sqrt(var(Return))) 
+data <- weekly %>%
+tbl_df() %>%
+group_by(Name) 
+%>% summarise("Mean (%)" = mean(Return)*100, "Volatility (%)"  = sqrt(var(Return))) 
 table <- kable(data, caption = "Exchang rate mean and volatility", digits = 5)
 print(table)
 ```
+## Graphical display of data`
 This plots the return series, fits all six figures into one output graph
-```{r Figure1, warning =  FALSE, fig.align = 'center', fig.cap = "Log differenced exchange rates \\label{Figure1}", fig.ext = 'png', fig.height = 4, fig.width = 6}
-Ret <- ggplot(data = weekly) + # Opens plot environment. Now let's add layers:
-geom_line(aes(x = date, y = Return, colour=Name), size = 0.3) + theme_bw() +
-labs(title = "",
-caption = "Data was downloaded from Bloomberg", x = "", y = "Log difference Values") +
-facet_wrap(~Name, scales = "free") + guides(color = FALSE)
+```{r}
+Ret <- ggplot(data = weekly) + geom_line(aes(x = date, y = Return, colour=Name), size = 0.3) + theme_bw() +
+labs(title = "", caption = "", x = "", y = "Log difference Values") + facet_wrap(~Name, scales = "free") + guides(color = FALSE)
 print(Ret)
 ```
-
-This specifies the MS-GARCH model for each of the six countries
-```{r Figure2, warning =  FALSE, fig.align = 'center', fig.cap = "Filtered probabilities of high volatility regime - emerging market economies \\label{Figure2}", fig.ext = 'png', fig.height = 4, fig.width = 7}
+## The MS-GARCH model
+This specifies the MS-GARCH model for each of the six countries. The loop reads in state/regime probabilities, and assigns by date into
+the filter dataframe for each country.
+```{r}
 #======================
 #MARKOV SWITCHING GARCH 
 #======================
@@ -116,7 +119,7 @@ BRZfilter$Date <- BRZ$date # Add the date column to make nicer plots
   
   filter_probs_long_IND <- gather(INDfilter,Regime,Probability,Regime1,factor_key = T) # Convert to long datatype for neat ggplots
   INDplot <- ggplot(data = filter_probs_long_IND)+geom_line(aes(x=Date,y=Probability))+facet_grid(.~Regime)+theme_bw()
-  
+#--------
 #AE group
 #--------
 #Create model spec
@@ -180,26 +183,38 @@ CANfilter$Date <- CAN$date # Add the date column to make nicer plots
   NORplot <- ggplot(data = filter_probs_long_NOR)+geom_line(aes(x=Date,y=Probability))+facet_grid(.~Regime)+theme_bw()
 ```
 These two code chunks plot the filtered probbailities for the countries of the two groups (AE and EM), and plot them on the same graph (ie the three filtered probabilities for the EM group on one graph, and the three for the AE on another graph).
-```{r Figure 3, warning =  FALSE, fig.align = 'center', fig.cap = "Filtered Probabilities - Emerging economies \\label{Figure1}", fig.ext = 'png', fig.height = 4, fig.width = 7}
-#plotting EM group
-#------------------------------------
+```{r}
+#--------
 #EM group
 #--------
-probEM <- ZARfilter %>% select(Date, Regime1) %>% rename(SA = Regime1) %>% cbind((BRZfilter %>% select(Regime1) %>% rename(Brazil = Regime1)),(INDfilter %>% select(Regime1) %>% rename(India = Regime1)))
-probEMlong <- probEM %>% gather(Name, Probability, -Date)
+probEM <- ZARfilter 
+%>% select(Date, Regime1) 
+%>% rename(SA = Regime1) 
+%>% cbind((BRZfilter %>% select(Regime1) %>% rename(Brazil = Regime1)),(INDfilter %>% select(Regime1) 
+%>% rename(India = Regime1)))
+probEMlong <- probEM 
+%>% gather(Name, Probability, -Date)
 EMplot <- ggplot(data = probEMlong)+geom_line(aes(x=Date, y=Probability, colour = Name))
 print(EMplot)
 
 ```
-```{r  Figure 4, warning =  FALSE, fig.align = 'center', fig.cap = "Filtered Probabilities - Advanced economies \\label{Figure3}", fig.ext = 'png', fig.height = 4, fig.width = 7}
-#plotting AE group
-#-----------------
-probAE <- AUSfilter %>% select(Date, Regime1) %>% rename(Australia = Regime1) %>% cbind((CANfilter %>% select(Regime1) %>% rename(Canada = Regime1)),(NORfilter %>% select(Regime1) %>% rename(Norway = Regime1)))
-probAElong <- probAE %>% gather(Name, Probability, -Date)
+```{r}
+#---------
+# AE group
+#---------
+probAE <- AUSfilter
+%>% select(Date, Regime1) 
+%>% rename(Australia = Regime1) 
+%>% cbind((CANfilter %>% select(Regime1) 
+%>% rename(Canada = Regime1)),(NORfilter %>% select(Regime1) 
+%>% rename(Norway = Regime1)))
+probAElong <- probAE
+%>% gather(Name, Probability, -Date)
 AEplot <- ggplot(data = probAElong)+geom_line(aes(x=Date, y=Probability, colour=Name))
 print(AEplot)
 ```
-```{r Figure 5, warning =  FALSE, fig.align = 'center', fig.cap = "Conditional Volatilities - Emerging economies \\label{Figure5}", fig.ext = 'png', fig.height = 3, fig.width = 7}
+## Conditional volatilites
+```{r}
 #========================
 #CONDITIONAL VOLATILITIES
 #========================
@@ -233,7 +248,8 @@ AEcondvol <- AEcondvol %>% rename(Date = `ZARfilter$Date`) %>% gather(Name, `Con
 AEcondvolplot <- ggplot(data = AEcondvol)+geom_line(aes(x=Date, y=`Conditional Volatility`, colour=Name))
 print(AEcondvolplot)
 ```
-The next chunk provides the output for the appendix, which consists of the model estimation output for each country. 
+## Model estimation output
+The next chunk provides the output for the appendix, which consists of the model estimation output for each country. Fitted on separate page for aesthetic appeal.
 
 
 ```{r}
@@ -249,20 +265,20 @@ BRZoutput <- fit_spec_BRZ[["Inference"]][["MatCoef"]]
 kable(BRZoutput, caption = "Model estimation - Brazil")
 ```
 
-\newpage
+
 
 ```{r}
 INDoutput <- fit_spec_IND[["Inference"]][["MatCoef"]]
 kable(INDoutput, caption = "Model estimation - India")
 ```
 
-## Output estimation -AE group
+
 ```{r}
 AUSoutput <- fit_spec_AUS[["Inference"]][["MatCoef"]]
 kable(AUSoutput, caption = "Model estimation - Australia")
 ```
 
-\newpage
+
 
 ```{r}
 CANoutput <- fit_spec_CAN[["Inference"]][["MatCoef"]]
