@@ -1,11 +1,12 @@
 # Robert_Grant
-```{r}
-#==========
-#MOTIVATION
-#==========
+
+
+## MOTIVATION
+
 This readme provides the code and reasoning for my Financial econometrics paper, which studies exchange rate volatility with a Markov-switching GARCH (MS-GARCH) model.
-```
-Loading packages required throughout this paper
+
+## Loading packages 
+Packages required throughout this paper
 ```{r}
 #=======
 PACKAGES
@@ -19,7 +20,7 @@ load_pkg("tidyverse")
 load_pkg("ggplot2")
 load_pkg("MTS")
 ```
-
+## Data import
 ```{r}
 #===========
 #DATA IMPORT
